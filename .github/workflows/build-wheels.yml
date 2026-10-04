@@ -19,10 +19,10 @@ jobs:
           - { name: Linux x86_64, os: ubuntu-latest, archs: x86_64 }
           - { name: macOS arm64, os: macos-14, archs: arm64 }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheel
-        uses: pypa/cibuildwheel@v2.21
+        uses: pypa/cibuildwheel@v3.2
         with:
           # The VapourSynth plugin lives in its own directory next to the Avisynth one.
           package-dir: vapoursynth
@@ -49,7 +49,7 @@ jobs:
           python -m wheel tags --python-tag py3 --abi-tag none --remove wheelhouse/*.whl
           ls wheelhouse
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: wheel-${{ matrix.os }}
           path: wheelhouse/*.whl
@@ -62,12 +62,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           pattern: wheel-*
           path: dist
           merge-multiple: true
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: dist/*.whl
           generate_release_notes: true
