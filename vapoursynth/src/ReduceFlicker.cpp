@@ -124,6 +124,9 @@ get_main_proc(arch_t arch, int strength, bool aggressive, const VSVideoFormat& f
     case USE_SSE41: return get_proc_sse41(strength, aggressive, bps);
     case USE_SSE2:  return get_proc_sse2(strength, aggressive, bps);
 #endif
+#if defined(ARM64_CPU)
+    case USE_NEON:  return get_proc_neon(strength, aggressive, bps);
+#endif
     default:        return get_proc_c(strength, aggressive, bps);
     }
 }

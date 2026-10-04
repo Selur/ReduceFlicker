@@ -25,7 +25,7 @@ sources = [
   'src/proc_c.cpp',
 ]
 
-# The SIMD routines are x86 only. Every instruction set is compiled in its own
+# The x86 SIMD routines: every instruction set is compiled in its own
 # unit with the matching flags; the one used is picked at runtime (see arch.h).
 simd_libs = []
 if host_machine.cpu_family() in ['x86', 'x86_64']
@@ -47,6 +47,11 @@ if host_machine.cpu_family() in ['x86', 'x86_64']
       gnu_symbol_visibility : 'hidden'
     )
   endforeach
+endif
+
+# NEON belongs to the arm64 baseline, so the routine needs no extra flags and no runtime check.
+if host_machine.cpu_family() == 'aarch64'
+  sources += 'src/proc_neon.cpp'
 endif
 
 # VapourSynth only autoloads *.dylib on macOS, while Meson defaults to *.so for modules.

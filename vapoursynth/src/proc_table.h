@@ -44,5 +44,6 @@ proc_filter_t get_proc_c(int strength, bool aggressive, int bps);
 proc_filter_t get_proc_sse2(int strength, bool aggressive, int bps);
 proc_filter_t get_proc_sse41(int strength, bool aggressive, int bps);
 proc_filter_t get_proc_avx2(int strength, bool aggressive, int bps);
+proc_filter_t get_proc_neon(int strength, bool aggressive, int bps);
 
 #endif
