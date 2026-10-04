@@ -24,26 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #ifndef ARCHITECTURE_H
 #define ARCHITECTURE_H
 
-#if defined(_M_IX86) || defined(_M_AMD64) || defined(__i686) || defined(__x86_64)
+#if defined(_M_IX86) || defined(_M_AMD64) || defined(__i686) || defined(__x86_64) || defined(__i386__) || defined(__x86_64__)
     #define INTEL_X86_CPU
-#if !defined(__GNUC__)
-    #define __AVX2__
-    #define __SSE4_1__
-    #define __SSE2__
-#endif // __GNUC__
-
 #endif // X86
-
-
-#if defined(__AVX2__)
-    #include <immintrin.h>
-#elif defined(__SSE4_1__)
-    #include <smmintrin.h>
-#elif defined(__SSSE3__)
-    #include <pmmintrin.h>
-#elif defined(__SSE2__)
-    #include <emmintrin.h>
-#endif
 
 
 #if defined(__GNUC__)
@@ -70,30 +53,30 @@ enum arch_t {
 #endif
 
 
+/*
+ * The SIMD routines are compiled in separate translation units
+ * (proc_sse2.cpp, proc_sse41.cpp, proc_avx2.cpp) with the matching
+ * instruction set enabled, so every level is available on x86 regardless
+ * of the flags the rest of the plugin is built with. The level actually
+ * used is chosen at runtime from the CPU and the 'opt' parameter.
+ */
 static inline arch_t get_arch(int opt)
 {
-#if !defined(__SSE2__)
-    return NO_SIMD
+#if !defined(INTEL_X86_CPU)
+    (void)opt;
+    return NO_SIMD;
 #else
     if (opt == 0 || !has_sse2()) {
         return NO_SIMD;
     }
-#if !defined(__SSE4_1__)
-    return USE_SSE2;
-#else
     if (opt == 1 || !has_sse41()) {
         return USE_SSE2;
     }
-#if !defined(__AVX2__)
-    return USE_SSE41;
-#else
     if (opt == 2 || !has_avx2()) {
         return USE_SSE41;
     }
     return USE_AVX2;
-#endif // __AVX2__
-#endif // __SSE4_1__
-#endif // __SSE2__
+#endif
 }
 
 #endif //ARCHITECTURE_H

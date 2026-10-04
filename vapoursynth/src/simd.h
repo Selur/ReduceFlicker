@@ -26,10 +26,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 #include <cstdint>
 #include "arch.h"
+
+
+#if defined(RF_SSE2)
+
+#if !defined(INTEL_X86_CPU)
+    #error "the SIMD routines are x86 only"
+#endif
 #include <immintrin.h>
-
-
-#if defined(__SSE2__)
 
 /********************* LOAD ****************************************/
 template <typename V> static F_INLINE V load(const uint8_t* p);
@@ -44,7 +48,7 @@ F_INLINE __m128 load(const uint8_t* p)
 {
     return _mm_load_ps(reinterpret_cast<const float*>(p));
 }
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <>
 F_INLINE __m256i load(const uint8_t* p)
 {
@@ -68,7 +72,7 @@ static F_INLINE void stream(uint8_t* p, const __m128& x)
     _mm_stream_ps(reinterpret_cast<float*>(p), x);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 static F_INLINE void stream(uint8_t* p, const __m256i& x)
 {
     _mm256_stream_si256(reinterpret_cast<__m256i*>(p), x);
@@ -94,7 +98,7 @@ F_INLINE __m128 setzero<__m128>()
     return _mm_setzero_ps();
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <>
 F_INLINE __m256i setzero<__m256i>()
 {
@@ -134,7 +138,7 @@ F_INLINE __m128 set1<float>()
     return _mm_set1_ps(0.25f);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <>
 F_INLINE __m256i set1<uint8_t>()
 {
@@ -164,7 +168,7 @@ static F_INLINE __m128i or_reg(const __m128i& x, const __m128i& y)
     return _mm_or_si128(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 static F_INLINE __m256 or_reg(const __m256& x, const __m256& y)
 {
     return _mm256_or_ps(x, y);
@@ -185,7 +189,7 @@ static F_INLINE __m128i and_reg(const __m128i& x, const __m128i& y)
     return _mm_and_si128(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 static F_INLINE __m256 and_reg(const __m256& x, const __m256& y)
 {
     return _mm256_and_ps(x, y);
@@ -206,7 +210,7 @@ static F_INLINE __m128i xor_reg(const __m128i& x, const __m128i& y)
     return _mm_xor_si128(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 static F_INLINE __m256 xor_reg(const __m256& x, const __m256& y)
 {
     return _mm256_xor_ps(x, y);
@@ -227,7 +231,7 @@ static F_INLINE __m128i andnot_reg(const __m128i& x, const __m128i& y)
     return _mm_andnot_si128(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 static F_INLINE __m256 andnot_reg(const __m256& x, const __m256& y)
 {
     return _mm256_andnot_ps(x, y);
@@ -255,7 +259,7 @@ F_INLINE __m128 cmpeq(const __m128& x, const __m128& y)
     return _mm_cmpeq_ps(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <typename T>
 static F_INLINE __m256i cmpeq(const __m256i& x, const __m256i& y)
 {
@@ -292,7 +296,7 @@ static F_INLINE __m128 sub(const __m128& x, const __m128& y)
     return _mm_sub_ps(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <typename T>
 static F_INLINE __m256i sub(const __m256i& x, const __m256i& y)
 {
@@ -329,7 +333,7 @@ static F_INLINE __m128 add(const __m128& x, const __m128& y)
     return _mm_add_ps(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <typename T>
 static F_INLINE __m256i add(const __m256i& x, const __m256i& y)
 {
@@ -371,7 +375,7 @@ F_INLINE __m128i max<int16_t, USE_SSE2>(const __m128i& x, const __m128i& y)
     return _mm_max_epi16(x, y);
 }
 
-#if defined(__SSE4_1__)
+#if defined(RF_SSE41)
 template <>
 F_INLINE __m128i max<uint8_t, USE_SSE41>(const __m128i& x, const __m128i& y)
 {
@@ -383,7 +387,7 @@ F_INLINE __m128i max<uint16_t, USE_SSE41>(const __m128i& x, const __m128i& y)
     return _mm_max_epu16(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <typename T, arch_t ARCH>
 static F_INLINE __m256 max(const __m256& x, const __m256& y)
 {
@@ -400,8 +404,8 @@ F_INLINE __m256i max<uint8_t, USE_AVX2>(const __m256i& x, const __m256i& y)
 {
     return _mm256_max_epu8(x, y);
 }
-#endif // __AVX2__
-#endif // __SSE4_1__
+#endif // RF_AVX2
+#endif // RF_SSE41
 
 
 /************************ MIN ************************************/
@@ -428,7 +432,7 @@ F_INLINE __m128i min<int16_t, USE_SSE2>(const __m128i& x, const __m128i& y)
     return _mm_min_epi16(x, y);
 }
 
-#if defined(__SSE4_1__)
+#if defined(RF_SSE41)
 template <>
 F_INLINE __m128i min<uint8_t, USE_SSE41>(const __m128i& x, const __m128i& y)
 {
@@ -440,7 +444,7 @@ F_INLINE __m128i min<uint16_t, USE_SSE41>(const __m128i& x, const __m128i& y)
     return _mm_min_epu16(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <typename T, arch_t ARCH>
 static F_INLINE __m256 min(const __m256& x, const __m256& y)
 {
@@ -457,8 +461,8 @@ F_INLINE __m256i min<uint8_t, USE_AVX2>(const __m256i& x, const __m256i& y)
 {
     return _mm256_min_epu8(x, y);
 }
-#endif // __AVX2__
-#endif // __SSE4_1__
+#endif // RF_AVX2
+#endif // RF_SSE41
 
 /***************************** ABS_DIFF *************************************/
 template <typename T, typename V>
@@ -472,13 +476,13 @@ F_INLINE __m128 abs_diff<float>(const __m128& x, const __m128& y)
 {
     return _mm_sub_ps(_mm_max_ps(x, y), _mm_min_ps(x, y));
 }
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <>
 F_INLINE __m256 abs_diff<float>(const __m256& x, const __m256& y)
 {
     return _mm256_sub_ps(_mm256_max_ps(x, y), _mm256_min_ps(x, y));
 }
-#endif // __AVX2__
+#endif // RF_AVX2
 
 /***************************** CLAMP **************************************/
 template <typename T, typename V, arch_t ARCH>
@@ -499,7 +503,7 @@ F_INLINE __m128i average<uint8_t>(const __m128i& x, const __m128i& y)
     return _mm_avg_epu8(x, y);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <typename T>
 static F_INLINE __m256i average(const __m256i& x, const __m256i& y)
 {
@@ -528,7 +532,7 @@ get_avg<float, __m128>(const __m128& a, const __m128& b, const __m128& x, const 
     return _mm_mul_ps(t, q);
 }
 
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <>
 F_INLINE __m256
 get_avg<float, __m256>(const __m256& a, const __m256& b, const __m256& x, const __m256& q)
@@ -550,9 +554,9 @@ template <arch_t ARCH>
 static F_INLINE __m128i
 blendv(const __m128i& x, const __m128i& y, const __m128i& mask)
 {
-    return _mm_or_si128(_mm_and_si128(mask, y), _mm_andnot_si128(mask, y));
+    return _mm_or_si128(_mm_and_si128(mask, y), _mm_andnot_si128(mask, x));
 }
-#if defined(__SSE4_1__)
+#if defined(RF_SSE41)
 template <>
 F_INLINE __m128
 blendv<USE_SSE41>(const __m128& x, const __m128& y, const __m128& mask)
@@ -565,7 +569,7 @@ blendv<USE_SSE41>(const __m128i& x, const __m128i& y, const __m128i& mask)
 {
     return _mm_blendv_epi8(x, y, mask);
 }
-#if defined(__AVX2__)
+#if defined(RF_AVX2)
 template <arch_t ARCH>
 static F_INLINE __m256
 blendv(const __m256& x, const __m256& y, const __m256& mask)
@@ -578,9 +582,9 @@ blendv(const __m256i& x, const __m256i& y, const __m256i& mask)
 {
     return _mm256_blendv_epi8(x, y, mask);
 }
-#endif // __AVX2__
-#endif // __SSE4_1__
+#endif // RF_AVX2
+#endif // RF_SSE41
 
-#endif // __SSE2__
+#endif // RF_SSE2
 
 #endif
