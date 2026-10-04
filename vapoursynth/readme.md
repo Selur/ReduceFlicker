@@ -42,7 +42,8 @@
 	2 - Use SSE4.1/SSE2/SSE routine. If cpu does not have SSE4.1, fallback to 1.
 	3(default) - Use AVX2/AVX routine. If cpu does not have AVX2, fallback to 2.
 
-	On non x86 machines (e.g. macOS arm64) only the C++ routine exists and opt is ignored.
+	On arm64 (e.g. macOS on Apple silicon) there is one NEON routine: 0 uses the C++ routine,
+	every other value NEON. On other non x86 machines only the C++ routine exists and opt is ignored.
 
 ### Installation:
 	Prebuilt wheels for Windows x64, Linux x86_64 and macOS arm64 are attached to each

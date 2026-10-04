@@ -28,6 +28,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
     #define INTEL_X86_CPU
 #endif // X86
 
+#if defined(__aarch64__) || defined(_M_ARM64)
+    #define ARM64_CPU
+#endif // arm64
+
 
 #if defined(__GNUC__)
     #define F_INLINE inline __attribute__((always_inline))
@@ -42,6 +46,7 @@ enum arch_t {
     USE_SSSE3,
     USE_SSE41,
     USE_AVX2,
+    USE_NEON,
 };
 
 
@@ -59,10 +64,14 @@ enum arch_t {
  * instruction set enabled, so every level is available on x86 regardless
  * of the flags the rest of the plugin is built with. The level actually
  * used is chosen at runtime from the CPU and the 'opt' parameter.
+ * arm64 has one NEON routine (proc_neon.cpp), used for every opt but 0.
  */
 static inline arch_t get_arch(int opt)
 {
-#if !defined(INTEL_X86_CPU)
+#if defined(ARM64_CPU)
+    // NEON is part of the arm64 baseline, there is nothing to detect
+    return opt == 0 ? NO_SIMD : USE_NEON;
+#elif !defined(INTEL_X86_CPU)
     (void)opt;
     return NO_SIMD;
 #else
