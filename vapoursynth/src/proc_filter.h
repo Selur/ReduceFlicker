@@ -67,7 +67,7 @@ proc_c(uint8_t* dstp, const uint8_t* currp, const uint8_t** prevp,
     const T0* cur0 = reinterpret_cast<const T0*>(currp);
     prv0 = reinterpret_cast<const T0*>(prevp[0]);
     prv1 = reinterpret_cast<const T0*>(prevp[1]);
-    nxt0 = reinterpret_cast<const T0*>(prevp[0]);
+    nxt0 = reinterpret_cast<const T0*>(nextp[0]);
     dstride /= sizeof(T0);
     cstride /= sizeof(T0);
     pstride[0] /= sizeof(T0);
@@ -79,7 +79,7 @@ proc_c(uint8_t* dstp, const uint8_t* currp, const uint8_t** prevp,
     }
     if (STRENGTH > 2) {
         prv2 = reinterpret_cast<const T0*>(prevp[2]);
-        nxt2 = reinterpret_cast<const T0*>(prevp[2]);
+        nxt2 = reinterpret_cast<const T0*>(nextp[2]);
         pstride[2] /= sizeof(T0);
         nstride[2] /= sizeof(T0);
     }
@@ -144,7 +144,7 @@ proc_a_c(uint8_t* dstp, const uint8_t* currp, const uint8_t** prevp,
     const T0* cur0 = reinterpret_cast<const T0*>(currp);
     prv0 = reinterpret_cast<const T0*>(prevp[0]);
     prv1 = reinterpret_cast<const T0*>(prevp[1]);
-    nxt0 = reinterpret_cast<const T0*>(prevp[0]);
+    nxt0 = reinterpret_cast<const T0*>(nextp[0]);
     dstride /= sizeof(T0);
     cstride /= sizeof(T0);
     pstride[0] /= sizeof(T0);
@@ -156,7 +156,7 @@ proc_a_c(uint8_t* dstp, const uint8_t* currp, const uint8_t** prevp,
     }
     if (STRENGTH > 2) {
         prv2 = reinterpret_cast<const T0*>(prevp[2]);
-        nxt2 = reinterpret_cast<const T0*>(prevp[2]);
+        nxt2 = reinterpret_cast<const T0*>(nextp[2]);
         pstride[2] /= sizeof(T0);
         nstride[2] /= sizeof(T0);
     }
@@ -203,7 +203,7 @@ proc_a_c(uint8_t* dstp, const uint8_t* currp, const uint8_t** prevp,
 /****************************** SIMD version *********************/
 
 #include "simd.h"
-#if defined(__SSE2__)
+#if defined(RF_SSE2)
 
 template <typename T, typename V, int STRENGTH, arch_t ARCH>
 static void
@@ -335,7 +335,7 @@ proc_a_simd(uint8_t* dstp, const uint8_t* currp, const uint8_t** prevp,
 
 }
 
-#endif // __SSE2__
+#endif // RF_SSE2
 
 #endif
 

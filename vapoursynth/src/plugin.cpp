@@ -22,17 +22,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
 #include <algorithm>
+#include <string>
+#include "config.h"
 #include "myvshelper.h"
 #include "ReduceFlicker.h"
 
-static const VSFrameRef* VS_CC
-get_frame(int n, int activation_reason, void** instance_data, void**,
+static const VSFrame* VS_CC
+get_frame(int n, int activation_reason, void* instance_data, void**,
           VSFrameContext* frame_ctx, VSCore* core, const VSAPI* api)
 {
-    auto d = reinterpret_cast<ReduceFlicker*>(*instance_data);
+    auto d = reinterpret_cast<ReduceFlicker*>(instance_data);
 
     if (activation_reason == arInitial) {
-        d->requestFrames(n, d->vi.numFrames - 1, d->clip, api, frame_ctx);
+        d->requestFrames(n, d->vi->numFrames - 1, d->clip, api, frame_ctx);
         return nullptr;
     }
     if (activation_reason != arAllFramesReady) {
@@ -43,17 +45,9 @@ get_frame(int n, int activation_reason, void** instance_data, void**,
 
 
 static void VS_CC
-init_filter(VSMap* in, VSMap* out, void** instance_data, VSNode* node,
-            VSCore* core, const VSAPI* api)
-{
-    auto d = reinterpret_cast<ReduceFlicker*>(*instance_data);
-    api->setVideoInfo(&d->vi, 1, node);
-}
-
-
-static void VS_CC
 free_filter(void* instance_data, VSCore* core, const VSAPI* api)
 {
+    (void)core;
     auto d = reinterpret_cast<ReduceFlicker*>(instance_data);
     api->freeNode(d->clip);
     delete d;
@@ -63,10 +57,10 @@ free_filter(void* instance_data, VSCore* core, const VSAPI* api)
 static void
 set_planes(int* planes, const VSMap* in, const VSAPI* api)
 {
-    int num = api->propNumElements(in, "planes");
+    int num = api->mapNumElements(in, "planes");
     validate(num > 3, "length of 'planes' must be equal or smaller than 3.");
 
-    if (num == 0) {
+    if (num <= 0) {
         return;
     }
     for (int i = 0; i < num; ++i) {
@@ -83,7 +77,7 @@ set_planes(int* planes, const VSMap* in, const VSAPI* api)
 static void VS_CC
 create_filter(const VSMap* in, VSMap* out, void*, VSCore* core, const VSAPI* api)
 {
-    VSNodeRef* clip = api->propGetNode(in, "clip", 0, nullptr);
+    VSNode* clip = api->mapGetNode(in, "clip", 0, nullptr);
 
     try {
         int str = get_arg("strength", 2, 0, in, api);
@@ -98,26 +92,30 @@ create_filter(const VSMap* in, VSMap* out, void*, VSCore* core, const VSAPI* api
 
         auto d = new ReduceFlicker(clip, str, agr, planes, arch, core, api);
 
-        api->createFilter(in, out, "ReduceFlicker", init_filter, get_frame,
-                          free_filter, fmParallel, 0, d, core);
+        // Every output frame reads several neighbouring input frames.
+        VSFilterDependency deps[] = { { clip, rpGeneral } };
+        api->createVideoFilter(out, "ReduceFlicker", d->vi, get_frame,
+                               free_filter, fmParallel, deps, 1, d, core);
 
     } catch (std::string e) {
         api->freeNode(clip);
-        api->setError(out, ("ReduceFlicker: " + e).c_str());
+        api->mapSetError(out, ("ReduceFlicker: " + e).c_str());
     }
 }
 
 VS_EXTERNAL_API(void)
-VapourSynthPluginInit(VSConfigPlugin conf, VSRegisterFunction reg, VSPlugin* p)
+VapourSynthPluginInit2(VSPlugin* plugin, const VSPLUGINAPI* vspapi)
 {
-    conf("chikuzen.does.not.have.his.own.domain.reduceflicker", "rdfl",
-         "ReduceFlicker for VapourSynth ver. 0.0.0",
-         VAPOURSYNTH_API_VERSION, 1, p);
-    reg("ReduceFlicker",
-        "clip:clip;"
-        "strength:int:opt;"
-        "aggressive:int:opt;"
-        "planes:int[]:opt;"
-        "opt:int:opt",
-        create_filter, nullptr, p);
+    vspapi->configPlugin("chikuzen.does.not.have.his.own.domain.reduceflicker",
+                         "rdfl",
+                         "ReduceFlicker for VapourSynth ver. " REDUCEFLICKER_VERSION,
+                         VS_MAKE_VERSION(1, 0), VAPOURSYNTH_API_VERSION, 0, plugin);
+    vspapi->registerFunction("ReduceFlicker",
+                             "clip:vnode;"
+                             "strength:int:opt;"
+                             "aggressive:int:opt;"
+                             "planes:int[]:opt;"
+                             "opt:int:opt;",
+                             "clip:vnode;",
+                             create_filter, nullptr, plugin);
 }
