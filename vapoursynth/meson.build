@@ -1,6 +1,6 @@
 project('ReduceFlicker', 'cpp',
   default_options : ['buildtype=release', 'b_ndebug=if-release', 'cpp_std=c++14'],
-  meson_version : '>=0.51.0',
+  meson_version : '>=0.64.0',
   version : '1.0.2'
 )
 
@@ -55,7 +55,10 @@ if host_machine.cpu_family() == 'aarch64'
 endif
 
 # VapourSynth only autoloads *.dylib on macOS, while Meson defaults to *.so for modules.
-suffix = host_machine.system() == 'darwin' ? 'dylib' : []
+module_kwargs = {}
+if host_machine.system() == 'darwin'
+  module_kwargs += {'name_suffix' : 'dylib'}
+endif
 
 if get_option('python_package')
   # Same layout as the VapourSynth PyPI package autoloads from: site-packages/vapoursynth/plugins
@@ -74,6 +77,6 @@ shared_module('ReduceFlicker', sources,
   link_with : simd_libs,
   install : true,
   install_dir : install_dir,
-  name_suffix : suffix,
-  gnu_symbol_visibility : 'hidden'
+  gnu_symbol_visibility : 'hidden',
+  kwargs : module_kwargs
 )
